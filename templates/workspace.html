@@ -1,0 +1,805 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Рабочий кабинет</title>
+    <script>
+        (function () {
+            try {
+                var theme = localStorage.getItem("sales_hub_theme_v1");
+                var sidebarState = localStorage.getItem("sales_hub_sidebar_state_v1");
+                if (theme) {
+                    document.documentElement.dataset.theme = theme;
+                }
+                if (sidebarState === "collapsed") {
+                    document.documentElement.dataset.sidebarState = "collapsed";
+                }
+            } catch (error) {
+                // Ignore storage issues and fall back to the default appearance.
+            }
+        }());
+    </script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+    <script defer src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script defer src="{{ url_for('static', filename='js/app.js') }}"></script>
+</head>
+<body class="workspace-page">
+    <div class="notice" id="notice"></div>
+
+    <div class="workspace-shell">
+        <aside class="workspace-sidebar">
+            <div class="sidebar-toolbar">
+                <span class="sidebar-badge">CRM</span>
+                <button class="sidebar-icon-button" type="button" data-toggle-sidebar aria-label="Скрыть левую панель">
+                    <span class="sidebar-icon-button__icon" aria-hidden="true">&#9776;</span>
+                    <span class="sidebar-icon-button__text">Панель</span>
+                </button>
+            </div>
+            <div class="brand-block">
+                <p class="eyebrow">Рабочий кабинет</p>
+                <h1>Панель продаж</h1>
+                <p class="sidebar-text">
+                    Все функции разделены по модулям, чтобы работать было проще и быстрее.
+                </p>
+            </div>
+
+            <div class="sidebar-panel">
+                <a class="ghost-button" href="{{ url_for('index') }}">На приветственную страницу</a>
+                {% if current_permissions.can_export %}
+                    <a class="ghost-button" href="/api/export/clients.csv">Экспорт клиентов</a>
+                    <a class="ghost-button" href="/api/export/sales.csv">Экспорт продаж</a>
+                {% endif %}
+            </div>
+
+            <div class="sidebar-panel profile-panel">
+                <span class="sidebar-label">Ваш профиль</span>
+                <div class="profile-card profile-card--sidebar">
+                    <div class="profile-avatar">{{ current_user.initials }}</div>
+                    <div class="profile-copy">
+                        <strong>{{ current_user.display_name }}</strong>
+                        <div class="meta-row">{{ current_user.role_label }}</div>
+                        <div class="meta-row">{{ current_user.email }}</div>
+                        {% if current_user.client_name %}
+                            <div class="meta-row">Компания: {{ current_user.client_name }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+                <form method="post" action="{{ url_for('logout') }}">
+                    <button class="ghost-button" type="submit">Выйти из системы</button>
+                </form>
+            </div>
+
+            <div class="sidebar-panel">
+                <span class="sidebar-label">Что где находится</span>
+                <ul class="sidebar-list">
+                    <li>Обзор: метрики, инсайты, аналитика</li>
+                    <li>Клиенты: база и добавление новых записей</li>
+                    <li>Продажи: сделки и канбан по этапам</li>
+                    <li>Документы: PDF и согласования</li>
+                    <li>Коммуникации: чат, задачи, поиск, журнал</li>
+                </ul>
+            </div>
+        </aside>
+
+        <main class="workspace-main">
+            <section class="workspace-top card">
+                <div>
+                    <p class="eyebrow">Структурированная работа</p>
+                    <h2>Выберите нужный раздел и работайте точечно</h2>
+                    <p class="hero-text">
+                        Кабинет разбит на вкладки. Сначала обычно открывают «Обзор», а затем переходят
+                        в нужный модуль: клиенты, продажи, документы или коммуникации.
+                    </p>
+                </div>
+                <div class="workspace-top-tools">
+                    <div class="workspace-top-actions">
+                        <button class="secondary-button" type="button" data-toggle-sidebar>
+                            <span data-sidebar-toggle-text>Скрыть левую панель</span>
+                        </button>
+                        <a class="secondary-button" href="{{ url_for('index') }}">Краткий обзор сайта</a>
+                    </div>
+                    <div class="workspace-user-cluster">
+                        <div class="profile-card profile-card--top">
+                            <div class="profile-avatar">{{ current_user.initials }}</div>
+                            <div class="profile-copy">
+                                <strong>{{ current_user.display_name }}</strong>
+                                <div class="meta-row">{{ current_user.role_label }}</div>
+                            </div>
+                        </div>
+                        <div class="pulse-chip" id="notificationBadge">0 сигналов</div>
+                    </div>
+                    <div class="theme-switcher" aria-label="Темы оформления">
+                        <div class="theme-switcher-head">
+                            <span class="sidebar-label">Темы оформления</span>
+                            <span class="theme-switcher-note">Меняйте палитру под настроение команды</span>
+                        </div>
+                        <div class="theme-switcher-options">
+                            <button class="theme-chip" type="button" data-theme-option="sunrise" aria-pressed="false">
+                                <span class="theme-chip-preview" aria-hidden="true">
+                                    <span class="theme-chip-swatch swatch-primary"></span>
+                                    <span class="theme-chip-swatch swatch-secondary"></span>
+                                    <span class="theme-chip-swatch swatch-accent"></span>
+                                </span>
+                                <span>Теплая</span>
+                            </button>
+                            <button class="theme-chip" type="button" data-theme-option="ocean" aria-pressed="false">
+                                <span class="theme-chip-preview" aria-hidden="true">
+                                    <span class="theme-chip-swatch swatch-primary"></span>
+                                    <span class="theme-chip-swatch swatch-secondary"></span>
+                                    <span class="theme-chip-swatch swatch-accent"></span>
+                                </span>
+                                <span>Океан</span>
+                            </button>
+                            <button class="theme-chip" type="button" data-theme-option="graphite" aria-pressed="false">
+                                <span class="theme-chip-preview" aria-hidden="true">
+                                    <span class="theme-chip-swatch swatch-primary"></span>
+                                    <span class="theme-chip-swatch swatch-secondary"></span>
+                                    <span class="theme-chip-swatch swatch-accent"></span>
+                                </span>
+                                <span>Графит</span>
+                            </button>
+                            <button class="theme-chip" type="button" data-theme-option="forest" aria-pressed="false">
+                                <span class="theme-chip-preview" aria-hidden="true">
+                                    <span class="theme-chip-swatch swatch-primary"></span>
+                                    <span class="theme-chip-swatch swatch-secondary"></span>
+                                    <span class="theme-chip-swatch swatch-accent"></span>
+                                </span>
+                                <span>Лес</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <nav class="workspace-tabs card">
+                <button class="workspace-tab is-active" type="button" data-workspace-tab="overview">Обзор</button>
+                <button class="workspace-tab" type="button" data-workspace-tab="clients">Клиенты</button>
+                <button class="workspace-tab" type="button" data-workspace-tab="sales">Продажи</button>
+                <button class="workspace-tab" type="button" data-workspace-tab="documents">Документы</button>
+                <button class="workspace-tab" type="button" data-workspace-tab="communications">Коммуникации</button>
+            </nav>
+
+            <section class="workspace-panel is-active" data-panel="overview">
+                <section class="card intro-card">
+                    <div class="section-head">
+                        <div>
+                            <p class="eyebrow">С чего начать</p>
+                            <h3>Краткая инструкция по кабинету</h3>
+                        </div>
+                    </div>
+                    <div class="guide-grid">
+                        <article class="guide-item">
+                            <span>1</span>
+                            <strong>Посмотрите сводку</strong>
+                            <p>В верхних карточках видно выручку, pipeline, прогноз и срочные задачи.</p>
+                        </article>
+                        <article class="guide-item">
+                            <span>2</span>
+                            <strong>Проверьте инсайты</strong>
+                            <p>Система подскажет, где точка внимания: документы, задачи или главные сделки.</p>
+                        </article>
+                        <article class="guide-item">
+                            <span>3</span>
+                            <strong>Откройте нужный модуль</strong>
+                            <p>Переходите во вкладки выше, чтобы работать только с нужной частью системы.</p>
+                        </article>
+                    </div>
+                </section>
+
+                <section class="attention-grid">
+                    <article class="card spotlight-card" id="spotlightPanel"></article>
+
+                    <article class="card attention-card">
+                        <div class="section-head">
+                            <div>
+                                <p class="eyebrow">Центр внимания</p>
+                                <h3>Сигналы и приоритеты</h3>
+                            </div>
+                        </div>
+                        <div class="notice-stack" id="notificationsPanel"></div>
+                    </article>
+
+                    <article class="card attention-card">
+                        <div class="section-head">
+                            <div>
+                                <p class="eyebrow">Быстрый запуск</p>
+                                <h3>Сценарии в один клик</h3>
+                            </div>
+                        </div>
+                        <div class="launchpad-grid" id="launchpadPanel"></div>
+                    </article>
+                </section>
+
+                <section class="hero card">
+                    <div class="summary-grid" id="summaryCards"></div>
+                </section>
+
+                <section class="top-grid">
+                    <article class="card feature-card">
+                        <div class="section-head">
+                            <div>
+                                <p class="eyebrow">Главное сейчас</p>
+                                <h3>Инсайты</h3>
+                            </div>
+                        </div>
+                        <div class="insight-grid" id="insightsPanel"></div>
+                    </article>
+
+                    <article class="card feature-card">
+                        <div class="section-head">
+                            <div>
+                                <p class="eyebrow">Согласования</p>
+                                <h3>Ближайшие документы</h3>
+                            </div>
+                        </div>
+                        <div class="mini-list" id="dueDocuments"></div>
+                    </article>
+
+                    <article class="card feature-card">
+                        <div class="section-head">
+                            <div>
+                                <p class="eyebrow">Команда</p>
+                                <h3>Загрузка сотрудников</h3>
+                            </div>
+                        </div>
+                        <div class="mini-list" id="teamLoad"></div>
+                    </article>
+                </section>
+
+                <section class="analytics-grid">
+                    <article class="card chart-card">
+                        <div class="card-head">
+                            <div>
+                                <p class="eyebrow">Выручка</p>
+                                <h3>Динамика по месяцам</h3>
+                            </div>
+                        </div>
+                        <canvas id="revenueChart"></canvas>
+                    </article>
+
+                    <article class="card chart-card">
+                        <div class="card-head">
+                            <div>
+                                <p class="eyebrow">Продукты</p>
+                                <h3>Лидеры продаж</h3>
+                            </div>
+                        </div>
+                        <canvas id="productChart"></canvas>
+                    </article>
+
+                    <article class="card chart-card">
+                        <div class="card-head">
+                            <div>
+                                <p class="eyebrow">Воронка</p>
+                                <h3>Статусы сделок</h3>
+                            </div>
+                        </div>
+                        <canvas id="funnelChart"></canvas>
+                    </article>
+
+                    <article class="card chart-card">
+                        <div class="card-head">
+                            <div>
+                                <p class="eyebrow">Документы</p>
+                                <h3>Статусы согласования</h3>
+                            </div>
+                        </div>
+                        <canvas id="documentChart"></canvas>
+                    </article>
+
+                    <article class="card list-card">
+                        <div class="card-head">
+                            <div>
+                                <p class="eyebrow">Клиенты</p>
+                                <h3>Топ по выручке</h3>
+                            </div>
+                        </div>
+                        <div class="mini-list" id="topClientsList"></div>
+                    </article>
+
+                    <article class="card list-card">
+                        <div class="card-head">
+                            <div>
+                                <p class="eyebrow">Регионы</p>
+                                <h3>Сильные направления</h3>
+                            </div>
+                        </div>
+                        <div class="mini-list" id="regionList"></div>
+                    </article>
+
+                    <article class="card full-span">
+                        <div class="section-head">
+                            <div>
+                                <p class="eyebrow">Состояние клиентской базы</p>
+                                <h3>Здоровье клиентов</h3>
+                            </div>
+                        </div>
+                        <div class="health-grid" id="clientsHealthPanel"></div>
+                    </article>
+                </section>
+
+                <section class="wide-grid">
+                    <article class="card">
+                        <div class="section-head">
+                            <div>
+                                <p class="eyebrow">Сделки по полочкам</p>
+                                <h3>Канбан воронки</h3>
+                            </div>
+                        </div>
+                        <div class="stage-board" id="pipelineBoard"></div>
+                    </article>
+
+                    <article class="card">
+                        <div class="section-head">
+                            <div>
+                                <p class="eyebrow">Шаблоны</p>
+                                <h3>Заготовки документов</h3>
+                            </div>
+                        </div>
+                        <div class="template-grid" id="documentTemplates"></div>
+                    </article>
+                </section>
+            </section>
+
+            <section class="workspace-panel" data-panel="clients">
+                <section class="workspace-grid">
+                    <article class="card">
+                        <div class="section-head">
+                            <div>
+                                <p class="eyebrow">Клиенты</p>
+                                <h3>Клиентская база</h3>
+                            </div>
+                            <div class="filters-inline">
+                                <input id="clientFilter" type="search" placeholder="Поиск по имени, компании, тегам или городу">
+                                <select id="clientStatusFilter">
+                                    <option value="all">Все статусы</option>
+                                    <option value="active">Активный</option>
+                                    <option value="prospect">Потенциальный</option>
+                                    <option value="onboarding">Подключение</option>
+                                    <option value="vip">VIP</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="table-wrap">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Клиент</th>
+                                        <th>Сегмент</th>
+                                        <th>Статус</th>
+                                        <th>Результат</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="clientsTable"></tbody>
+                            </table>
+                        </div>
+                    </article>
+
+                    <article class="card">
+                        <div class="section-head">
+                            <div>
+                                <p class="eyebrow">Добавление</p>
+                                <h3>Новый клиент</h3>
+                            </div>
+                        </div>
+                        {% if current_permissions.can_manage_clients %}
+                            <form id="clientForm" class="form-grid">
+                                <label>
+                                    Имя контакта
+                                    <input name="name" required placeholder="Например, Айдана Серик">
+                                </label>
+                                <label>
+                                    Компания
+                                    <input name="company" placeholder="Название компании">
+                                </label>
+                                <label>
+                                    Email
+                                    <input name="email" type="email" required placeholder="client@company.kz">
+                                </label>
+                                <label>
+                                    Телефон
+                                    <input name="phone" placeholder="+7 700 000 00 00">
+                                </label>
+                                <label>
+                                    Сегмент
+                                    <input name="segment" placeholder="Ритейл, SaaS, логистика">
+                                </label>
+                                <label>
+                                    Город
+                                    <input name="city" placeholder="Алматы">
+                                </label>
+                                <label>
+                                    Статус
+                                    <select name="status">
+                                        <option value="prospect">Потенциальный</option>
+                                        <option value="active">Активный</option>
+                                        <option value="onboarding">Подключение</option>
+                                        <option value="vip">VIP</option>
+                                    </select>
+                                </label>
+                                <label>
+                                    Теги
+                                    <input name="tags" placeholder="аналитика,pdf,чат">
+                                </label>
+                                <label class="full">
+                                    Комментарий
+                                    <textarea name="notes" rows="4" placeholder="Что важно знать о клиенте"></textarea>
+                                </label>
+                                <button class="primary-button full" type="submit">Добавить клиента</button>
+                            </form>
+                        {% else %}
+                            <div class="access-note">
+                                Добавление клиентов доступно менеджеру или руководителю. В вашем профиле открыт режим просмотра.
+                            </div>
+                        {% endif %}
+                    </article>
+                </section>
+            </section>
+
+            <section class="workspace-panel" data-panel="sales">
+                <section class="workspace-grid">
+                    <article class="card">
+                        <div class="section-head">
+                            <div>
+                                <p class="eyebrow">Продажи</p>
+                                <h3>Реестр сделок</h3>
+                            </div>
+                            <div class="filters-inline">
+                                <select id="salesStatusFilter">
+                                    <option value="all">Все статусы</option>
+                                    <option value="new">Новая</option>
+                                    <option value="proposal">Предложение</option>
+                                    <option value="negotiation">Переговоры</option>
+                                    <option value="won">Успешно</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="table-wrap">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Продукт</th>
+                                        <th>Клиент</th>
+                                        <th>Статус</th>
+                                        <th>Сумма</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="salesTable"></tbody>
+                            </table>
+                        </div>
+                    </article>
+
+                    <article class="card">
+                        <div class="section-head">
+                            <div>
+                                <p class="eyebrow">Новая сделка</p>
+                                <h3>Добавить в воронку</h3>
+                            </div>
+                        </div>
+                        {% if current_permissions.can_manage_sales %}
+                        <form id="saleForm" class="form-grid">
+                            <label>
+                                Клиент
+                                <select name="client_id" id="saleClientSelect" required></select>
+                            </label>
+                            <label>
+                                Продукт
+                                <input name="product_name" required placeholder="Например, Пакет аналитики">
+                            </label>
+                            <label>
+                                Категория
+                                <input name="category" required placeholder="Аналитика, CRM, документы">
+                            </label>
+                            <label>
+                                Количество
+                                <input name="quantity" type="number" min="1" value="1">
+                            </label>
+                            <label>
+                                Цена за единицу
+                                <input name="unit_price" type="number" min="0" step="1000" placeholder="85000">
+                            </label>
+                            <label>
+                                Статус
+                                <select name="status">
+                                    <option value="new">Новая</option>
+                                    <option value="proposal">Предложение</option>
+                                    <option value="negotiation">Переговоры</option>
+                                    <option value="won">Успешно</option>
+                                </select>
+                            </label>
+                            <label>
+                                Дата сделки
+                                <input name="sale_date" type="date">
+                            </label>
+                            <label>
+                                Источник
+                                <input name="source" placeholder="Рекомендация, входящий лид, upsell">
+                            </label>
+                            <label>
+                                Ответственный
+                                <input name="owner" placeholder="Имя менеджера">
+                            </label>
+                            <label>
+                                Регион
+                                <input name="region" placeholder="Кызылорда">
+                            </label>
+                            <label class="full">
+                                Примечание
+                                <textarea name="notes" rows="4" placeholder="Что важно по сделке"></textarea>
+                            </label>
+                            <button class="primary-button full" type="submit">Сохранить сделку</button>
+                        </form>
+                        {% else %}
+                        <div class="access-note">
+                            Управление сделками доступно для внутренних ролей. Вы по-прежнему можете просматривать воронку и статусы.
+                        </div>
+                        {% endif %}
+                    </article>
+                </section>
+            </section>
+
+            <section class="workspace-panel" data-panel="documents">
+                <section class="document-grid">
+                    <article class="card">
+                        <div class="section-head">
+                            <div>
+                                <p class="eyebrow">Документы</p>
+                                <h3>PDF и согласования</h3>
+                            </div>
+                            <div class="filters-inline">
+                                <input id="documentFilter" type="search" placeholder="Поиск по документу или клиенту">
+                                <select id="documentStatusFilter">
+                                    <option value="all">Все статусы</option>
+                                    <option value="draft">Черновик</option>
+                                    <option value="sent">Отправлен</option>
+                                    <option value="approved">Согласован</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="table-wrap">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Документ</th>
+                                        <th>Клиент</th>
+                                        <th>Статус</th>
+                                        <th>Действия</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="documentsTable"></tbody>
+                            </table>
+                        </div>
+                    </article>
+
+                    <div class="stack">
+                        <article class="card">
+                            <div class="section-head">
+                                <div>
+                                    <p class="eyebrow">Создание документа</p>
+                                    <h3>Новый PDF</h3>
+                                </div>
+                            </div>
+                            {% if current_permissions.can_manage_documents %}
+                            <form id="documentForm" class="form-grid">
+                                <label>
+                                    Клиент
+                                    <select name="client_id" id="documentClientSelect" required></select>
+                                </label>
+                                <label>
+                                    Название документа
+                                    <input name="title" required placeholder="Например, Договор на внедрение">
+                                </label>
+                                <label>
+                                    Тип
+                                    <select name="type">
+                                        <option value="contract">Договор</option>
+                                        <option value="proposal">Коммерческое предложение</option>
+                                        <option value="invoice">Счет</option>
+                                        <option value="act">Акт</option>
+                                    </select>
+                                </label>
+                                <label>
+                                    Сумма
+                                    <input name="amount" type="number" min="0" step="1000" placeholder="0">
+                                </label>
+                                <label>
+                                    Срок согласования
+                                    <input name="due_date" type="date">
+                                </label>
+                                <label class="full">
+                                    Содержание
+                                    <textarea name="content" rows="6" required placeholder="Введите текст документа или воспользуйтесь шаблоном"></textarea>
+                                </label>
+                                <button class="primary-button full" type="submit">Создать PDF-документ</button>
+                            </form>
+                            {% else %}
+                            <div class="access-note">
+                                Создание документов доступно менеджеру и руководителю. В этом режиме вы можете просматривать PDF и согласования.
+                            </div>
+                            {% endif %}
+                        </article>
+
+                        {% if current_permissions.can_send_email %}
+                        <article class="card">
+                            <div class="section-head">
+                                <div>
+                                    <p class="eyebrow">Email-согласование</p>
+                                    <h3>Отправка клиенту</h3>
+                                </div>
+                            </div>
+                            <form id="emailForm" class="form-grid">
+                                <input id="emailDocumentId" type="hidden" name="document_id">
+                                <label class="full">
+                                    Выбранный документ
+                                    <input id="emailDocumentTitle" name="document_title" readonly placeholder="Выберите документ из таблицы">
+                                </label>
+                                <label>
+                                    Email получателя
+                                    <input id="emailRecipient" name="recipient" type="email" placeholder="client@company.kz">
+                                </label>
+                                <label>
+                                    Тема письма
+                                    <input id="emailSubject" name="subject" placeholder="Согласование документа">
+                                </label>
+                                <label class="full">
+                                    Текст письма
+                                    <textarea id="emailBody" name="body" rows="5" placeholder="Введите сообщение клиенту"></textarea>
+                                </label>
+                                <button class="primary-button full" type="submit">Отправить письмо</button>
+                            </form>
+                            <div class="preview-box" id="emailPreview"></div>
+                        </article>
+                        {% endif %}
+                    </div>
+                </section>
+            </section>
+
+            <section class="workspace-panel" data-panel="communications">
+                <section class="operations-grid">
+                    <div class="stack">
+                        <article class="card">
+                            <div class="section-head">
+                                <div>
+                                    <p class="eyebrow">Поиск</p>
+                                    <h3>Быстрый поиск по системе</h3>
+                                </div>
+                            </div>
+                            <form id="searchForm" class="search-bar">
+                                <input id="searchInput" type="search" placeholder="Клиент, документ, задача, продукт или город">
+                                <select id="searchScope">
+                                    <option value="all">Во всех разделах</option>
+                                    <option value="clients">Только клиенты</option>
+                                    <option value="sales">Только сделки</option>
+                                    <option value="documents">Только документы</option>
+                                    <option value="tasks">Только задачи</option>
+                                </select>
+                                <button class="secondary-button" type="submit">Найти</button>
+                            </form>
+                            <div class="result-list" id="searchResults"></div>
+                        </article>
+
+                        <article class="card">
+                            <div class="section-head">
+                                <div>
+                                    <p class="eyebrow">Задачи</p>
+                                    <h3>План и контроль выполнения</h3>
+                                </div>
+                            </div>
+                            {% if current_permissions.can_manage_tasks %}
+                            <form id="taskForm" class="form-grid">
+                                <label>
+                                    Задача
+                                    <input name="title" required placeholder="Например, Подготовить коммерческое предложение">
+                                </label>
+                                <label>
+                                    Ответственный
+                                    <input name="owner" placeholder="Имя сотрудника">
+                                </label>
+                                <label>
+                                    Клиент
+                                    <select name="client_id" id="taskClientSelect"></select>
+                                </label>
+                                <label>
+                                    Приоритет
+                                    <select name="priority">
+                                        <option value="medium">Средний</option>
+                                        <option value="high">Высокий</option>
+                                        <option value="low">Низкий</option>
+                                    </select>
+                                </label>
+                                <label>
+                                    Срок
+                                    <input name="due_date" type="date">
+                                </label>
+                                <label>
+                                    Статус
+                                    <select name="status">
+                                        <option value="open">Открыта</option>
+                                        <option value="in_progress">В работе</option>
+                                        <option value="done">Готово</option>
+                                    </select>
+                                </label>
+                                <label class="full">
+                                    Описание
+                                    <textarea name="description" rows="4" placeholder="Подробности задачи"></textarea>
+                                </label>
+                                <button class="primary-button full" type="submit">Добавить задачу</button>
+                            </form>
+                            {% else %}
+                            <div class="access-note">
+                                Редактирование задач отключено для вашего профиля. Ниже доступен просмотр текущего плана.
+                            </div>
+                            {% endif %}
+                            <div class="task-list" id="taskList"></div>
+                        </article>
+
+                        <article class="card">
+                            <div class="section-head">
+                                <div>
+                                    <p class="eyebrow">Личные заметки</p>
+                                    <h3>Быстрый блокнот</h3>
+                                </div>
+                            </div>
+                            <div class="notes-box">
+                                <textarea id="quickNotes" rows="8" placeholder="Сюда можно сохранить идеи, договоренности, итоги звонков и план действий."></textarea>
+                                <div class="meta-caption">Заметки сохраняются локально на этом устройстве.</div>
+                            </div>
+                        </article>
+                    </div>
+
+                    <div class="stack">
+                        <article class="card chat-card">
+                            <div class="section-head">
+                                <div>
+                                    <p class="eyebrow">Клиентский чат</p>
+                                    <h3>Коммуникации</h3>
+                                </div>
+                                <div class="filters-inline">
+                                    <select id="chatRoomSelect"></select>
+                                </div>
+                            </div>
+                            <div class="chat-feed" id="chatFeed"></div>
+                            <form id="chatForm" class="form-grid compact-form">
+                                <input name="sender_name" type="hidden" value="{{ current_user.display_name }}">
+                                <input name="sender_role" type="hidden" value="{{ current_user.role }}">
+                                <label class="full">
+                                    Клиент
+                                    <select name="client_id" id="chatClientSelect"></select>
+                                </label>
+                                <label class="full">
+                                    Сообщение
+                                    <textarea name="message" rows="4" required placeholder="Введите сообщение"></textarea>
+                                </label>
+                                <button class="primary-button full" type="submit">Отправить сообщение</button>
+                            </form>
+                            <div class="chat-meta-strip">
+                                Вы вошли как <strong>{{ current_user.display_name }}</strong> · {{ current_user.role_label }}
+                            </div>
+                        </article>
+
+                        <article class="card">
+                            <div class="section-head">
+                                <div>
+                                    <p class="eyebrow">История</p>
+                                    <h3>Активность и письма</h3>
+                                </div>
+                            </div>
+                            <div class="dual-column">
+                                <div>
+                                    <h4>Последняя активность</h4>
+                                    <div class="activity-list" id="activityFeed"></div>
+                                </div>
+                                <div>
+                                    <h4>Email и согласования</h4>
+                                    <div class="activity-list" id="emailLogs"></div>
+                                </div>
+                            </div>
+                        </article>
+                    </div>
+                </section>
+            </section>
+        </main>
+    </div>
+</body>
+</html>

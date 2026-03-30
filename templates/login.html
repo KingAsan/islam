@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Вход в рабочий кабинет</title>
+    <script>
+        (function () {
+            try {
+                var theme = localStorage.getItem("sales_hub_theme_v1");
+                if (theme) {
+                    document.documentElement.dataset.theme = theme;
+                }
+            } catch (error) {
+                // Ignore storage issues and use the default theme.
+            }
+        }());
+    </script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+</head>
+<body class="auth-page">
+    <main class="auth-shell">
+        <section class="auth-hero card">
+            <div class="auth-copy">
+                <p class="eyebrow">Авторизация</p>
+                <h1>Вход в систему продаж нового уровня</h1>
+                <p class="hero-text">
+                    После входа вы получаете персональный кабинет: роли, доступы, приоритеты,
+                    центр внимания, документы, чат и живую аналитику под ваш сценарий работы.
+                </p>
+
+                <div class="hero-pills">
+                    <span class="pill">Роли и права доступа</span>
+                    <span class="pill">Центр внимания</span>
+                    <span class="pill">Личный кабинет клиента</span>
+                    <span class="pill">Безопасные сессии</span>
+                </div>
+
+                <div class="auth-feature-grid">
+                    <article class="home-feature-item">
+                        <strong>Руководитель</strong>
+                        <p>Полная картина по деньгам, воронке, загрузке команды и экспортам.</p>
+                    </article>
+                    <article class="home-feature-item">
+                        <strong>Менеджер</strong>
+                        <p>Быстрый вход в сделки, документы, чат и ежедневные действия.</p>
+                    </article>
+                    <article class="home-feature-item">
+                        <strong>Клиент</strong>
+                        <p>Отдельный кабинет со своими документами, задачами и прозрачным статусом.</p>
+                    </article>
+                </div>
+            </div>
+
+            <div class="auth-form-card">
+                <div class="section-head">
+                    <div>
+                        <p class="eyebrow">Вход</p>
+                        <h3>Откройте рабочий кабинет</h3>
+                    </div>
+                </div>
+                <form class="form-grid auth-form" method="post" action="{{ url_for('login') }}">
+                    <input type="hidden" name="next" value="{{ next_url }}">
+                    <label class="full">
+                        Логин или email
+                        <input id="loginIdentity" name="username" required placeholder="director или director@sales-hub.local">
+                    </label>
+                    <label class="full">
+                        Пароль
+                        <input id="loginPassword" name="password" type="password" required placeholder="Введите пароль">
+                    </label>
+                    {% if error %}
+                        <div class="full auth-error">{{ error }}</div>
+                    {% endif %}
+                    <button class="primary-button full" type="submit">Войти в систему</button>
+                </form>
+
+                <div class="auth-demo-head">
+                    <span class="sidebar-label">Демо-профили</span>
+                    <span class="theme-switcher-note">Нажмите на карточку, чтобы подставить входные данные</span>
+                </div>
+                <div class="demo-grid">
+                    {% for demo in demo_users %}
+                        <button
+                            class="demo-card"
+                            type="button"
+                            data-demo-login="{{ demo.username }}"
+                            data-demo-password="{{ demo.password }}"
+                        >
+                            <strong>{{ demo.title }}</strong>
+                            <div class="meta-row">{{ demo.username }} / {{ demo.password }}</div>
+                            <p>{{ demo.description }}</p>
+                        </button>
+                    {% endfor %}
+                </div>
+
+                <div class="auth-footer">
+                    <a class="secondary-button" href="{{ url_for('index') }}">Вернуться на обзор сайта</a>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        document.querySelectorAll("[data-demo-login]").forEach(function (button) {
+            button.addEventListener("click", function () {
+                document.getElementById("loginIdentity").value = button.dataset.demoLogin;
+                document.getElementById("loginPassword").value = button.dataset.demoPassword;
+            });
+        });
+    </script>
+</body>
+</html>

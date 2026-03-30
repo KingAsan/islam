@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Добро пожаловать в систему продаж</title>
+    <script>
+        (function () {
+            try {
+                var theme = localStorage.getItem("sales_hub_theme_v1");
+                if (theme) {
+                    document.documentElement.dataset.theme = theme;
+                }
+            } catch (error) {
+                // Ignore storage issues and use the default theme.
+            }
+        }());
+    </script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+</head>
+<body class="home-page">
+    <main class="home-shell">
+        <section class="home-hero card">
+            <div class="home-hero-copy">
+                <p class="eyebrow">Приветственная страница</p>
+                <h1>Единая система для продаж, клиентов, документов и общения</h1>
+                <p class="hero-text">
+                    Этот сайт помогает команде держать под контролем весь цикл работы:
+                    от клиентской базы и сделок до PDF-документов, согласований по email,
+                    задач и клиентского чата. Ниже короткий обзор, чтобы сразу понять,
+                    где что находится и как этим пользоваться.
+                </p>
+
+                <div class="home-actions">
+                    {% if current_user %}
+                        <a class="primary-button" href="{{ url_for('workspace') }}">Продолжить как {{ current_user.display_name }}</a>
+                        <form method="post" action="{{ url_for('logout') }}">
+                            <button class="secondary-button" type="submit">Выйти</button>
+                        </form>
+                    {% else %}
+                        <a class="primary-button" href="{{ url_for('login') }}">Войти в систему</a>
+                        <a class="secondary-button" href="{{ url_for('login') }}">Открыть демо-доступ</a>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="home-hero-side">
+                {% if current_user %}
+                    <div class="home-highlight">
+                        <span>{{ current_user.initials }}</span>
+                        <strong>Активный профиль</strong>
+                        <p>{{ current_user.display_name }} · {{ current_user.role_label }}</p>
+                    </div>
+                {% else %}
+                    <div class="home-highlight">
+                        <span>Вход</span>
+                        <strong>Демо-профили уже готовы</strong>
+                        <p>Используйте страницу входа, чтобы открыть кабинет руководителя, менеджера, аналитика или клиента.</p>
+                    </div>
+                {% endif %}
+                <div class="home-highlight">
+                    <span>1</span>
+                    <strong>Сначала обзор</strong>
+                    <p>В разделе «Обзор» собраны ключевые метрики, инсайты и канбан сделок.</p>
+                </div>
+                <div class="home-highlight">
+                    <span>2</span>
+                    <strong>Потом работа по разделам</strong>
+                    <p>Клиенты, продажи, документы и коммуникации вынесены в отдельные понятные блоки.</p>
+                </div>
+                <div class="home-highlight">
+                    <span>3</span>
+                    <strong>Быстрые действия</strong>
+                    <p>Из кабинета можно двигать статусы, создавать PDF, отправлять письма и вести чат.</p>
+                </div>
+            </div>
+        </section>
+
+        <section class="home-grid">
+            <article class="card home-card">
+                <p class="eyebrow">Краткий обзор сайта</p>
+                <h2>Что вы найдете внутри</h2>
+                <div class="home-feature-list">
+                    <div class="home-feature-item">
+                        <strong>Обзор</strong>
+                        <p>Главные показатели, умные подсказки, здоровье клиентов и воронка сделок.</p>
+                    </div>
+                    <div class="home-feature-item">
+                        <strong>Клиенты</strong>
+                        <p>База клиентов с фильтрами, карточками и удобным добавлением новых контактов.</p>
+                    </div>
+                    <div class="home-feature-item">
+                        <strong>Продажи</strong>
+                        <p>Таблица сделок, статусы, канбан и быстрый переход по этапам.</p>
+                    </div>
+                    <div class="home-feature-item">
+                        <strong>Документы</strong>
+                        <p>Создание PDF, шаблоны, отправка на согласование и контроль сроков.</p>
+                    </div>
+                    <div class="home-feature-item">
+                        <strong>Коммуникации</strong>
+                        <p>Поиск, задачи, клиентский чат, журнал действий и локальные заметки.</p>
+                    </div>
+                </div>
+            </article>
+
+            <article class="card home-card">
+                <p class="eyebrow">Как работать</p>
+                <h2>Рекомендуемый сценарий</h2>
+                <div class="home-steps">
+                    <div class="home-step">
+                        <span>01</span>
+                        <div>
+                            <strong>Откройте раздел «Обзор»</strong>
+                            <p>Сначала посмотрите выручку, pipeline, срочные задачи и документы на контроле.</p>
+                        </div>
+                    </div>
+                    <div class="home-step">
+                        <span>02</span>
+                        <div>
+                            <strong>Перейдите в нужный модуль</strong>
+                            <p>После обзора сразу откройте нужный блок: клиентов, продажи или документы.</p>
+                        </div>
+                    </div>
+                    <div class="home-step">
+                        <span>03</span>
+                        <div>
+                            <strong>Выполните действие</strong>
+                            <p>Добавьте клиента, обновите сделку, создайте PDF или отправьте письмо клиенту.</p>
+                        </div>
+                    </div>
+                    <div class="home-step">
+                        <span>04</span>
+                        <div>
+                            <strong>Контролируйте коммуникации</strong>
+                            <p>Завершайте задачи, общайтесь в чате и отслеживайте активность команды.</p>
+                        </div>
+                    </div>
+                </div>
+            </article>
+        </section>
+
+        <section class="home-modules">
+            <article class="card module-card">
+                <p class="eyebrow">Раздел 1</p>
+                <h3>Обзор и аналитика</h3>
+                <p class="hero-text">
+                    Это главная точка входа в кабинет. Здесь видны самые важные цифры,
+                    проблемные места и быстрые управленческие выводы.
+                </p>
+                <a class="secondary-button" href="{{ url_for('workspace') }}#overview">Открыть обзор</a>
+            </article>
+
+            <article class="card module-card">
+                <p class="eyebrow">Раздел 2</p>
+                <h3>Клиенты и продажи</h3>
+                <p class="hero-text">
+                    В этих разделах удобно вести базу, добавлять сделки и быстро переводить их по этапам.
+                </p>
+                <div class="module-actions">
+                    <a class="secondary-button" href="{{ url_for('workspace') }}#clients">Клиенты</a>
+                    <a class="secondary-button" href="{{ url_for('workspace') }}#sales">Продажи</a>
+                </div>
+            </article>
+
+            <article class="card module-card">
+                <p class="eyebrow">Раздел 3</p>
+                <h3>Документы и коммуникации</h3>
+                <p class="hero-text">
+                    Здесь находятся PDF-документы, email-согласования, задачи, чат и история работы.
+                </p>
+                <div class="module-actions">
+                    <a class="secondary-button" href="{{ url_for('workspace') }}#documents">Документы</a>
+                    <a class="secondary-button" href="{{ url_for('workspace') }}#communications">Коммуникации</a>
+                </div>
+            </article>
+        </section>
+
+        <section class="card home-footer-card">
+            <div>
+                <p class="eyebrow">Готово к работе</p>
+                <h2>Рабочий кабинет уже упорядочен по разделам</h2>
+                <p class="hero-text">
+                    Теперь информация не собрана в одном длинном полотне: сначала приветственная страница,
+                    затем отдельный кабинет с навигацией по смысловым блокам.
+                </p>
+            </div>
+            <a class="primary-button" href="{{ url_for('workspace') }}">Перейти в кабинет</a>
+        </section>
+    </main>
+</body>
+</html>

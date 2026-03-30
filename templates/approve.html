@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Согласование документа</title>
+    <script>
+        (function () {
+            try {
+                var theme = localStorage.getItem("sales_hub_theme_v1");
+                if (theme) {
+                    document.documentElement.dataset.theme = theme;
+                }
+            } catch (error) {
+                // Ignore storage issues and use the default theme.
+            }
+        }());
+    </script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+</head>
+<body class="approve-body">
+    <main class="approve-shell">
+        {% if not_found %}
+            <section class="card approve-card">
+                <p class="eyebrow">Согласование</p>
+                <h1>Ссылка недействительна</h1>
+                <p class="hero-text">Документ по этой ссылке не найден или уже недоступен.</p>
+            </section>
+        {% else %}
+            <section class="card approve-card">
+                <p class="eyebrow">Страница клиента</p>
+                <h1>{{ document.title }}</h1>
+                <p class="hero-text">{{ document.client_name }} · {{ document.client_company }}</p>
+
+                <div class="approve-grid">
+                    <div>
+                        <span class="detail-label">Тип документа</span>
+                        <strong>{{ document.type }}</strong>
+                    </div>
+                    <div>
+                        <span class="detail-label">Статус</span>
+                        <strong>{{ document.status }}</strong>
+                    </div>
+                    <div>
+                        <span class="detail-label">Срок</span>
+                        <strong>{{ document.due_date or "не указан" }}</strong>
+                    </div>
+                    <div>
+                        <span class="detail-label">Сумма</span>
+                        <strong>{{ "{:,.0f}".format(document.amount).replace(",", " ") }} KZT</strong>
+                    </div>
+                </div>
+
+                <div class="approve-content">
+                    <p>{{ document.content }}</p>
+                </div>
+
+                {% if document.status == "approved" %}
+                    <div class="status-banner success">Документ уже согласован. Спасибо.</div>
+                {% else %}
+                    <form method="post">
+                        <button class="primary-button" type="submit">Подтвердить документ</button>
+                    </form>
+                {% endif %}
+            </section>
+        {% endif %}
+    </main>
+</body>
+</html>
