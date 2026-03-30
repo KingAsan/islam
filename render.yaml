@@ -1,0 +1,21 @@
+services:
+  - type: web
+    name: sales-signature-hub
+    runtime: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn app:app
+    healthCheckPath: /health
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.12.8
+      - key: SECRET_KEY
+        generateValue: true
+      - key: PUBLIC_BASE_URL
+        sync: false
+      - key: APP_DEBUG
+        value: "0"
+      - key: DATABASE_PATH
+        value: /opt/render/project/src/storage/database.sqlite3
+      - key: PDF_DIR
+        value: /opt/render/project/src/storage/pdfs
